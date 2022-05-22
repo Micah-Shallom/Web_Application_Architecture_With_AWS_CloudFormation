@@ -1,0 +1,130 @@
+Description: >
+  Micah Shallom Bawa
+  Web Application Architecture Using AWS CloudFormation
+
+#Constructing parameter templates
+Parameters:
+  ProjectName:
+    Description: The name tags of all the projects infrastructures
+  VpcCIDR:
+    Description: The CIDR IP address range for our VPC
+    Type: String
+    Default: 10.0.0.0/16
+  PublicSubnet1CIDR:
+    Description: The Ip address range of all servers in public subnet 1
+    Type: String
+    Default: 10.0.0.0/24
+  PublicSubnet2CIDR:
+    Description: The Ip address range of all servers in public subnet 2
+    Type: String
+    Default: 10.0.1.0/24
+  PrivateSubnet1CIDR:
+    Description: The Ip address range of all servers in private subnet 1
+    Type: String
+    Default: 10.0.2.0/24
+  PrivateSubnet2CIDR:
+    Description: The Ip address range of all servers in private subnet 2
+    Type: String
+    Default: 10.0.3.0/24
+
+
+Resources:
+#############################################################################################################
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} VPC
+#############################################################################################################
+#Creating Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName} InternetGateway
+  VPCInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+###########################################################################################################
+#Creating Public and Private Subnet
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref: VPC
+      CidrBlock: !Ref PublicSubnet1CIDR
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Public Subnet (AZ1)
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref: VPC
+      CidrBlock: !Ref PublicSubnet2CIDR
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Public Subnet (AZ1)
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0 , !GetAZs '']
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1 , !GetAZs '']
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+##############################################################################################################
+#Creating Elastic IP addresses for the public NAT Gateways
+  PublicNatEIP1:
+    Type: AWS::EC2::EIP
+    DependsOn: VPCInternetGatewayAttachment
+    Properties:
+      Domain: vpc
+  PublicNatEIP2:
+    Type: AWS::EC2::EIP
+    DependsOn: VPCInternetGatewayAttachment
+    Properties:
+      Domain: vpc
+############################################################################################################
+#Creating NAT Gateways to be housed in the Public Subnets
+  PublicNATGateway1:
+   Type: AWS::EC2::NatGateway
+   Properties:
+      AllocationId:
+         Fn::GetAtt:
+         - PublicNatEIP1
+         - AllocationId
+      SubnetId:
+         Ref: PublicSubnet1
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Public NAT 1
+  PublicNATGateway2:
+   Type: AWS::EC2::NatGateway
+   Properties:
+      AllocationId:
+         Fn::GetAtt:
+         - PublicNatEIP2
+         - AllocationId
+      SubnetId:
+         Ref: PublicSubnet2
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Public NAT 2
