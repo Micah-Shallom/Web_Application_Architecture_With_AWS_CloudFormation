@@ -128,3 +128,124 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${ProjectName} Public NAT 2
+########################################################################################################
+#Creating Routing Roles to control the flow of access traffics
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName} Public RT
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCInternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref VPC
+        Tags:
+          - Key: Name
+            Value: !Sub ${ProjectName} Private RT 1
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref VPC
+        Tags:
+          - Key: Name
+            Value: !Sub ${ProjectName} Private RT 2
+  PrivateRoute1:
+    Type: AWS::EC2::Route
+    DependsOn: VPCInternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref PublicNatGateway1
+  PrivateRoute2:
+    Type: AWS::EC2::Route
+    DependsOn: VPCInternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref PublicNatGateway2
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet1
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      SubnetId: !Ref PrivateSubnet2
+################################################################################################################
+#Sending Vital Information Globally as Output
+
+Outputs:
+  VPC:
+    Description: The ID of the VPC
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${ProjectName}-VPCID
+  VPCPublicRouteTable:
+    Description: Public Route Table 
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: !Sub ${ProjectName}-Pub-RT
+  VPCPrivateRouteTable1:
+    Description: Private Route Table 1
+    Value: !Ref PrivateRouteTable1
+    Export:
+      Name: !Sub ${ProjectName}-PRIV-RT-1
+  VPCPrivateRouteTable2:
+    Description: Private Route Table 2
+    Value: !Ref PrivateRouteTable2
+    Export:
+      Name: !Sub ${ProjectName}-PRIV-RT-2
+  PublicSubnets:
+    Description: All Public Subnets
+    Value: !Join [',' , [!Ref PublicSubnet1 , !Ref PublicSubnet2]]
+    Export:
+      Name: !Sub ${ProjectName}-PUB-SUBNETS
+  PublicSubnet1:
+    Description: A reference to the public subnet in (AZ1)
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub ${ProjectName}-PUB1-SUBNET
+  PublicSubnet2:
+    Description: A reference to the public subnet in (AZ2)
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub ${ProjectName}-PUB1-SUBNET
+
+  PrivateSubnets:
+    Description: All Private Subnets
+    Value: !Join [',' , [!Ref PrivateSubnet1 , !Ref PrivateSubnet2]]
+    Export:
+      Name: !Sub "${ProjectName}-PRIV-SUBNETS"
+  PrivateSubnet1:
+    Description: A reference to the private subnet in (AZ1)
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub ${ProjectName}-PRIV1-SUBNET
+  PrivateSubnet2:
+    Description: A reference to the private subnet in (AZ2)
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub ${ProjectName}-PRIV2-SUBNET
+  
