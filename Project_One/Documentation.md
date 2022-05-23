@@ -16,3 +16,8 @@ The above infrastructure consists of the following segments
     - EC2
     - Security Groups
 - Storage and Databases
+
+### Networking Infrastructures Creation
+![logged_in_cli](./img/1.logged_in_cli.png)
+![creation_in_progress](./img/2.create_in_progress.png)
+![completed_stack_creation](./img/3.network_segment_done.png)
