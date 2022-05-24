@@ -1,0 +1,26 @@
+Description: >
+  Micah Shallom Bawa
+  Creating a typical network infrastructure with AWS CloudFormation
+
+#############################################################################################
+#Creating Template Parameters
+Parameters:
+  ProjectName:
+    Description: Environment Name for all project infrastructures
+    Type: String
+  VPC:
+    Description: Virtual Private Cloud Network Infrastructure
+    Type: String
+    Default: 10.0.0.0/16
+#############################################################################################
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPC
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} VPC
+        

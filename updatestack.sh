@@ -1,0 +1,1 @@
+aws cloudformation update-stack --stack-name $1 --region=us-east-1 --template file://$3 --capabilities "CAPABILITY_IAM" "cAPABILITY_NAMED_IAM"
