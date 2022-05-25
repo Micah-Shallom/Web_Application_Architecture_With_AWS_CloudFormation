@@ -1,0 +1,117 @@
+Description: >
+  Micah Shallom Bawa
+  Creating a typical network infrastructure with AWS CloudFormation
+
+#############################################################################################
+#Creating Template Parameters
+Parameters:
+  ProjectName:
+    Description: Environment Name for all project infrastructures
+    Type: String
+  VpcCIDR:
+    Description: Virtual Private Cloud Network Infrastructure
+    Type: String
+    Default: 10.0.0.0/16
+  PubSubCIDR:
+    Description: IP address ranges for the public subnet
+    Type: String
+    Default: 10.0.1.0/24
+  PrivSubCIDR:
+    Description: IP address range for the private subnet
+    Type: String
+    Default: 10.0.2.0/24
+#############################################################################################
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} VPC
+############################################################################################
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    # DependsOn: !Ref VPCInternetGatewayAttachment
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} IG
+  VPCInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+#############################################################################################
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PubSubCIDR
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Public Subnet
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PrivSubCIDR
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Private Subnet
+###############################################################################################
+  PublicNATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Public NAT
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: VPCInternetGateway
+    Properties:
+      Domain: vpc
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Elastic Ip Address
+###############################################################################################
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: !Sub ${ProjectName} Public RT
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCInternetGateway
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName} Private RT
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCInternetGateway
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: PublicNATGateway
