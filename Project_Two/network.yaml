@@ -115,3 +115,15 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId:
         Ref: PublicNATGateway
+##########################################################################################
+Outputs:
+  VPC:
+    Description: The VPCID of the whole network
+    Value: !Ref VPC
+    Export:
+      Name: !Sub "${ProjectName}-VPCID"
+  PrivateSubnet:
+    Description: Private subnet of the architecture
+    Value: !Ref PrivateSubnet
+    Export:
+      Name: !Sub "${ProjectName}-PRIV-SUBNET"

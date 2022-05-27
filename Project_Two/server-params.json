@@ -1,0 +1,10 @@
+[
+    {
+        "ParameterKey": "AMItoUse",
+        "ParameterValue": "ami-0022f774911c1d690"
+    },
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "WAACFPro2"
+    }
+]
