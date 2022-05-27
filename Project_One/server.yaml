@@ -1,0 +1,75 @@
+Description: >
+  Micah Shallom Bawa
+  Building Server Infrastructures and Security Groups
+#Template Parameters
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Specifies Name for each infrastructure build
+############################################################################################
+Resources:
+#Creating Security Groups for server and loadbalancer
+  LBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: 
+      - Fn::ImportValue:
+          !Sub "${ProjectName}-VPCID"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: 
+        Fn::ImportValue:
+          !Sub "{ProjectName}-VPCID"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+####################################################################################
+#Configuring AutoScaling
+  WebLaunchConfig: 
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-09d56f8956ab235b3
+      KeyName: vockey
+      UserData:
+        Fn::Base64: !Sub | 
+          #!/bin/bash
+          sudo apt-get update -y
+          sudo apt-get install apache2 -y
+          sudo systemctl start apache2.service
+      SecurityGroups: 
+        - !Ref WebSecurityGroup
+      InstanceType: t2.micro
+      BlockDeviceMappings: 
+        - DeviceName: /dev/sda1
+          Ebs: 
+            VolumeSize: '10'
+  WebAPPGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchConfigurationName: !Ref WebLaunchConfig
+      MaxSize: '3'
+      MinSize: '2'
+      DesiredCapacity: '2'
+      VPCZoneIdentifier: 
+        Fn::ImportValue:
+          !Sub "${ProjectName}-PRIV-SUBNETS"
