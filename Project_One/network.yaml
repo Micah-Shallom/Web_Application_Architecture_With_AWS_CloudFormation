@@ -238,7 +238,7 @@ Outputs:
     Description: All Private Subnets
     Value: !Join [',' , [!Ref PrivateSubnet1 , !Ref PrivateSubnet2]]
     Export:
-      Name: !Sub "${ProjectName}-PRIV-SUBNETS"
+      Name: !Sub ${ProjectName}-PRIV-SUBNETS
   PrivateSubnet1:
     Description: A reference to the private subnet in (AZ1)
     Value: !Ref PrivateSubnet1
