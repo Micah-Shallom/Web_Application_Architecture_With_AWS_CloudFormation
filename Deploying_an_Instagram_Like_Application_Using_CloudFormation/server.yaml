@@ -15,6 +15,51 @@ Parameters:
   #   Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 ##############################################################################################
 Resources:
+#IAmRolesandPolicy
+  UdacityS3ReadOnlyEC2:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+  S3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: mygrouppolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:PutObject
+          - s3:PutObjectAcl
+          Resource: 
+          - arn:aws:s3:::udagram2345/*
+      Roles:
+      - !Ref UdacityS3ReadOnlyEC2
+  ProfileWithRolesForOurApp:
+      Type: AWS::IAM::InstanceProfile
+      Properties: 
+        Path: "/"
+        Roles:
+        - !Ref UdacityS3ReadOnlyEC2
+#######################################################################################
 #Security Groups
   LBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -61,6 +106,7 @@ Resources:
     Properties:
       ImageId: ami-09d56f8956ab235b3
       InstanceType: t2.medium
+      IamInstanceProfile: !Ref ProfileWithRolesForOurApp
       KeyName: vockey
       UserData: 
         Fn::Base64: !Sub |
@@ -69,7 +115,7 @@ Resources:
           apt-get install apache2 -y
           systemctl start apache2.service
           cd /var/www/html
-          echo "Udacity Demo Web Server Up and Running!" > index.html
+          aws s3 cp s3://udagram2345/ . --recursive
       SecurityGroups: 
         - !Ref WebAppSecurityGroup
       BlockDeviceMappings: 
@@ -163,4 +209,4 @@ Outputs:
     Description: The DNS Name of the loadbalancer
     Value: !Join [ "", [ 'http://', !GetAtt WebLoadBalancer.DNSName ]]
     Export:
-      Name: DNSName
+      Name: DNSName-Of-LoadBalancer
