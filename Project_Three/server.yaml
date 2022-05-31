@@ -82,7 +82,6 @@ Resources:
       LaunchConfigurationName: !Ref WebLaunchConfig
       MaxSize: '6'
       MinSize: '4'
-      DependsOn: !Ref WebTargetGroup
       TargetGroupARNs:
         - Ref: WebTargetGroup
       VPCZoneIdentifier: 
@@ -111,7 +110,7 @@ Resources:
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 8
       HealthyThresholdCount: 2
-      Port: 8080
+      Port: 80
       Protocol: HTTP
       UnhealthyThresholdCount: 5
       VpcId:
