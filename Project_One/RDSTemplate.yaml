@@ -1,0 +1,47 @@
+Description: >
+  Micah Shallom Bawa
+  Relational Database Infrastructure Build
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Project Name 
+  DBUsername:
+    NoEcho: 'true'
+    Description: Username for MySQL database access
+    Type: String
+  DBPassword:
+    NoEcho: 'true'
+    Description: Password MySQL database access
+    Type: String
+######################################################################################
+Resources:
+  DBSubnetGroup: 
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties: 
+      DBSubnetGroupName: 'Security Group'
+      DBSubnetGroupDescription: Security Group for RDS
+      SubnetIds: 
+        - subnet-0b3120e93a25a8b34
+        - subnet-03ff20ed0f0fa9879
+  MyDB:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBName: MyDB
+      DBInstanceClass: "db.t2.small"
+      VPCSecurityGroups: [sg-0c1c1e2bd1436c616]
+      Engine: "mysql"
+      PubliclyAccessible: false
+      MultiAZ: false
+      AllocatedStorage: 10
+      MasterUsername: !Sub ${DBUsername}
+      MasterUserPassword: !Sub ${DBPassword}
+      MonitoringInterval: '60'
+      MonitoringRoleArn: arn:aws:iam::245763264674:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Tags: 
+        - 
+          Key: "Name"
+          Value: !Sub "${ProjectName} MS SQL RDS"
+    DeletionPolicy: 'Retain'
+#####################################################################################  
+  

@@ -1,0 +1,14 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "WAACF-Pro1"
+    },
+    {
+        "ParameterKey": "DBUsername",
+        "ParameterValue": "mshallom"
+    },
+    {
+        "ParameterKey": "DBPassword",
+        "ParameterValue": "Chamo.Pzo"
+    }
+]
