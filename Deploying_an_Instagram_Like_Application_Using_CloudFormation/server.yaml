@@ -48,9 +48,8 @@ Resources:
           Action:
           - s3:GetObject
           - s3:PutObject
-          - s3:PutObjectAcl
           Resource: 
-          - arn:aws:s3:::udagram2345/*
+          - arn:aws:s3:::udagram23456/
       Roles:
       - !Ref UdacityS3ReadOnlyEC2
   ProfileWithRolesForOurApp:
@@ -115,7 +114,7 @@ Resources:
           apt-get install apache2 -y
           systemctl start apache2.service
           cd /var/www/html
-          aws s3 cp s3://udagram2345/ . --recursive
+          aws s3 cp s3://udagram23456/ . --recursive
       SecurityGroups: 
         - !Ref WebAppSecurityGroup
       BlockDeviceMappings: 
