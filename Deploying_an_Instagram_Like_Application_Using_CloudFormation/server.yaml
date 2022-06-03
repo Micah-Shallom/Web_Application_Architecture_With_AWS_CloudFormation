@@ -113,7 +113,7 @@ Resources:
       ImageId: ami-09d56f8956ab235b3
       InstanceType: t2.medium
       IamInstanceProfile: !Ref ProfileWithRolesForOurApp
-      KeyName: vockey
+      KeyName: privateInstancekey
       UserData: 
         Fn::Base64: !Sub |
           #!/bin/bash
@@ -134,8 +134,8 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       LaunchConfigurationName: !Ref WebLaunchConfig
-      MaxSize: '2'
-      MinSize: '1'
+      MaxSize: '5'
+      MinSize: '4'
       TargetGroupARNs:
         - Ref: WebTargetGroup
       VPCZoneIdentifier: 
@@ -211,10 +211,40 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Threshold: 0
       EvaluationPeriods: 1
-
+#########################################################################
+#Creating JumpBox Instance
+  JumpBoxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to administrator host
+      VpcId:
+        Fn::ImportValue: 
+          !Sub ${ProjectName}-VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+  JumpBoxServer:
+    Type: AWS::EC2::Instance
+    Properties: 
+      # InstanceType: m1.small
+      ImageId: "ami-09d56f8956ab235b3"
+      KeyName: "jumpboxkey"
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Ref: "JumpBoxSecurityGroup"
+          SubnetId: 
+            Fn::ImportValue:
+              Fn::Sub: "${ProjectName}-PUB-SUBNET1"
+      Tags: 
+      - Key: Name
+        Value: JumpBoxServer
 Outputs:
   WebLBDNSName:
     Description: The DNS Name of the loadbalancer
-    Value: !Join [ "", [ 'http://', !GetAtt WebLoadBalancer.DNSName ]]
+    Value: !Join [ "", [ 'http://', !GetAtt WebLoadBalancer.DNSName, '/app' ]]
     Export:
       Name: DNSName-Of-LoadBalancer
