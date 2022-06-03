@@ -16,7 +16,7 @@ Parameters:
 ##############################################################################################
 Resources:
 #IAmRolesandPolicy
-  UdacityS3ReadOnlyEC2:
+  UdacityS3ReadOnlyEC2Role:
     Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
@@ -29,35 +29,42 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Path: /
-      Policies:
-        - PolicyName: root
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: '*'
-                Resource: '*'
+      # Policies:
+      #   - PolicyName: AmazonS3ReadOnlyAccess
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action: 
+      #           - s3:Get*
+      #           - s3:List*
+      #           - s3-object-lambda:Get*
+      #           - s3-object-lambda:List*
+      #           Resource: '*'
   S3Policy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: mygrouppolicy
+      PolicyName: AmazonS3ReadOnlyAccess
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
         - Effect: Allow
           Action:
-          - s3:GetObject
-          - s3:PutObject
+          - s3:Get*
+          - s3:List*
+          - s3-object-lambda:Get*
+          - s3-object-lambda:List*
           Resource: 
-          - arn:aws:s3:::udagram23456/
+          - arn:aws:s3:::udagram2345/
+          - arn:aws:s3:::udagram2345/*
       Roles:
-      - !Ref UdacityS3ReadOnlyEC2
+      - !Ref UdacityS3ReadOnlyEC2Role
   ProfileWithRolesForOurApp:
       Type: AWS::IAM::InstanceProfile
       Properties: 
         Path: "/"
         Roles:
-        - !Ref UdacityS3ReadOnlyEC2
+        - !Ref UdacityS3ReadOnlyEC2Role
 #######################################################################################
 #Security Groups
   LBSecurityGroup:
@@ -114,7 +121,9 @@ Resources:
           apt-get install apache2 -y
           systemctl start apache2.service
           cd /var/www/html
-          aws s3 cp s3://udagram23456/ . --recursive
+          apt-get install awscli unzip -y 
+          aws s3 cp s3://udagram2345/app.zip . 
+          unzip -o app.zip
       SecurityGroups: 
         - !Ref WebAppSecurityGroup
       BlockDeviceMappings: 
@@ -125,8 +134,8 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       LaunchConfigurationName: !Ref WebLaunchConfig
-      MaxSize: '6'
-      MinSize: '4'
+      MaxSize: '2'
+      MinSize: '1'
       TargetGroupARNs:
         - Ref: WebTargetGroup
       VPCZoneIdentifier: 
