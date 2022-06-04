@@ -113,7 +113,7 @@ Resources:
       ImageId: ami-09d56f8956ab235b3
       InstanceType: t2.medium
       IamInstanceProfile: !Ref ProfileWithRolesForOurApp
-      KeyName: privateInstancekey
+      # KeyName: #############
       UserData: 
         Fn::Base64: !Sub |
           #!/bin/bash
